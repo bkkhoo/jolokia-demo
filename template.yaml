@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: jolokia-demo
+metadata:
+  annotations:
+    description: An example Java MBean with jolokia
+    iconClass: icon-rh-openjdk
+    openshift.io/display-name: Jolokia demo
+    tags: java
+  name: jolokia-demo
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: jolokia-demo
+    name: jolokia-demo
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      application: jolokia-demo
+    name: jolokia-demo
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: jolokia-demo:latest
+    source:
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: redhat-openjdk18-openshift:1.4
+          namespace: openshift
+      type: Source
+    triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      application: jolokia-demo
+    name: jolokia-access
+  data:
+    jolokia-access.xml: |+
+      <?xml version="1.0" encoding="utf-8"?>
+      <restrict>
+        <commands>
+          <command>read</command>
+          <command>list</command>
+          <command>version</command>
+          <command>search</command>
+        </commands>
+
+        <allow>
+          <mbean>
+            <name>com.example.mbeans:type=Hello</name>
+            <operation>*</operation>
+            <attribute mode="write">Property1</attribute>
+          </mbean>
+          <mbean>
+            <name>com.sun.management:type=HotSpotDiagnostic</name>
+            <operation>dumpHeap(java.lang.String, bolean)</operation>
+          </mbean>
+        </allow>
+      </restrict>
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      application: jolokia-demo
+    name: jolokia-demo
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: jolokia-demo
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          application: jolokia-demo
+          deploymentConfig: jolokia-demo
+        name: jolokia-demo
+      spec:
+        containers:
+        - env:
+          - name: AB_JOLOKIA_OPTS
+            value: policyLocation=file:///opt/jolokia/etc/jolokia-access.xml
+          - name: AB_JOLOKIA_PASSWORD_RANDOM
+            value: "false"
+          - name: AB_JOLOKIA_PORT
+            value: ${JOLOKIA_PORT}
+          image: jolokia-demo
+          imagePullPolicy: Always
+          name: jolokia-demo
+          ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+          - name: jolokia
+            containerPort: ${JOLOKIA_PORT}
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /opt/jolokia/etc/jolokia-access.xml
+            name: jolokia-access
+            subPath: jolokia-access.xml
+        volumes:
+        - configMap:
+            name: jolokia-access
+          name: jolokia-access
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - jolokia-demo
+        from:
+          kind: ImageStreamTag
+          name: jolokia-demo:latest
+      type: ImageChange
+    - type: ConfigChange
+parameters:
+- description: Git source URI for application
+  displayName: Git Repository URL
+  name: SOURCE_REPOSITORY_URL
+  required: true
+  value: https://github.com/bkkhoo/jolokia-test
+- description: Port the Jolokia agent should listen to
+  displayName: Jolokia port
+  name: JOLOKIA_PORT
+  required: false
+  value: "8778"
