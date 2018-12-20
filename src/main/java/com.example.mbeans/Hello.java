@@ -1,10 +1,11 @@
 package com.example.mbeans;
 
+import com.example.mbeans.HeapDump;
+
 public class Hello implements HelloMBean {
-    private static final int DEFAULT_VALUE = 13;
     private final String name = "HelloMBean";
-    private int property1 = DEFAULT_VALUE;
-    private int property2 = DEFAULT_VALUE;
+    private int property1 = 13;
+    private int property2 = 18;
 
     public String sayHello() {
         return this.name + ": hello, world";
@@ -35,5 +36,7 @@ public class Hello implements HelloMBean {
         System.out.println("Property2 is now " + this.property2);
     }
 
+    public String dumpHeap(String heapDumpFile, boolean live) {
+        return HeapDump.dumpHeap(heapDumpFile, live);
+    }
 }
-

@@ -4,6 +4,7 @@ public interface HelloMBean {
     // operations
     public String sayHello();
     public int add(int x, int y);
+    public String dumpHeap(String heapDumpFile, boolean live);
 
     // a read-only Attribute
     public String getName();
@@ -14,4 +15,3 @@ public interface HelloMBean {
     public int getProperty2();
     public void setProperty2(int interger);
 }
-

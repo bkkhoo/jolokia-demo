@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<restrict>
+  <commands>
+    <command>read</command>
+    <command>list</command>
+    <command>version</command>
+    <command>search</command>
+  </commands>
+
+  <allow>
+    <mbean>
+      <name>com.example.mbeans:type=Hello</name>
+      <operation>*</operation>
+      <attribute mode="write">Property1</attribute>
+    </mbean>
+    <mbean>
+      <name>com.sun.management:type=HotSpotDiagnostic</name>
+      <operation>dumpHeap(java.lang.String, bolean)</operation>
+    </mbean>
+  </allow>
+</restrict>

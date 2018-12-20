@@ -14,13 +14,13 @@ objects:
   kind: ImageStream
   metadata:
     labels:
-      application: jolokia-demo
+      app: jolokia-demo
     name: jolokia-demo
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-      application: jolokia-demo
+      app: jolokia-demo
     name: jolokia-demo
   spec:
     output:
